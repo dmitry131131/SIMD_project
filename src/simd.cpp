@@ -3,12 +3,12 @@
 
 #include "simd.h"
 
-void generate_image(sf::Uint32 array[WINDOW_HEIGHT][WINDOW_WIDTH])
+void generate_image_by_pixel(sf::Uint32 array[WINDOW_HEIGHT][WINDOW_WIDTH])
 {
     for (size_t line = 0; line < WINDOW_HEIGHT; line++)
     {
-        float x_0 = (-(400.f)*dx - 0.2) * scale;
-        float y_0 = (((float) line - (300.f))*dy) * scale;
+        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
+        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy) * scale;
         
         for (size_t col = 0; col < WINDOW_WIDTH; col++, x_0 += dx*scale)
         {
@@ -16,7 +16,7 @@ void generate_image(sf::Uint32 array[WINDOW_HEIGHT][WINDOW_WIDTH])
             float y_n = y_0;
             size_t count = 0;
 
-            while (count < 256)
+            while (count < MAX_ITERATIONS)
             {
                 count++;
                 float X2 = x_n*x_n;
@@ -30,11 +30,7 @@ void generate_image(sf::Uint32 array[WINDOW_HEIGHT][WINDOW_WIDTH])
                 x_n = X2 - Y2 + x_0;
                 y_n = XY + XY + y_0;
             }
-
-            if (count == 256)
-            {
-                array[line][col] = 0xffffffff;
-            }
+                array[line][col] = (sf::Uint32) (0xffffffff / (MAX_ITERATIONS + 1 - count));
         } 
     }
 }
