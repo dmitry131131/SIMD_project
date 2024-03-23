@@ -27,7 +27,8 @@ int main()
             if (event.type == sf::Event::Closed)
                 window.close();
         }
-        window.clear(sf::Color::Black);
+
+        window.clear();
         window.draw(sprite);
         window.display();
     }
