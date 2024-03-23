@@ -1,10 +1,13 @@
 #include <stdio.h>
+#include <assert.h>
 #include <SFML/Graphics.hpp>
 
 #include "simd.h"
 
-void generate_image_by_pixel(sf::Uint32 array[WINDOW_HEIGHT][WINDOW_WIDTH])
+void generate_image_by_pixel(sf::Uint32* array)
 {
+    assert(array);
+
     for (size_t line = 0; line < WINDOW_HEIGHT; line++)
     {
         float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
@@ -30,7 +33,7 @@ void generate_image_by_pixel(sf::Uint32 array[WINDOW_HEIGHT][WINDOW_WIDTH])
                 x_n = X2 - Y2 + x_0;
                 y_n = XY + XY + y_0;
             }
-                array[line][col] = (sf::Uint32) (0xffffffff / (MAX_ITERATIONS + 1 - count));
+                array[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff / (MAX_ITERATIONS + 1 - count));
         } 
     }
 }
