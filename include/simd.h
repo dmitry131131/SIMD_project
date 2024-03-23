@@ -13,4 +13,6 @@ const float scale = 2.9f, X_offset = -0.25f;
 
 void generate_image_by_pixel(sf::Uint32* array);
 
+void generate_image_by_line(sf::Uint32* array);
+
 #endif

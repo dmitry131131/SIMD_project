@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <SFML/Graphics.hpp>
 
 #include "simd.h"
@@ -10,7 +11,27 @@ int main()
 
     sf::Uint32* frame = (sf::Uint32*) calloc(WINDOW_HEIGHT * WINDOW_WIDTH, sizeof(sf::Uint32));
 
-    generate_image_by_pixel(frame);
+    clock_t start_time = clock();
+
+    for (size_t i = 0; i < 5; i++)
+    {
+        generate_image_by_pixel(frame);
+    }
+
+    clock_t end_time = clock();
+
+    printf("pixel time: %ld\n", end_time - start_time);
+
+    start_time = clock();
+
+    for (size_t i = 0; i < 5; i++)
+    {
+        generate_image_by_line(frame);
+    }
+
+    end_time = clock();
+
+    printf("line time:  %ld\n", end_time - start_time);
 
     sf::Texture tx;
     tx.create(WINDOW_WIDTH, WINDOW_HEIGHT);
