@@ -33,7 +33,7 @@ void generate_image_by_pixel(sf::Uint32* array)
                 x_n = X2 - Y2 + x_0;
                 y_n = XY + XY + y_0;
             }
-                array[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff - 180*count);   // Магическое число в определении цвета
+            array[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff - 180*count);   // Магическое число в определении цвета
         } 
     }
 }
@@ -42,51 +42,44 @@ void generate_image_by_line(sf::Uint32* array)
 {
     assert(array);
 
+    float real_dx = dx*scale;
+
     for (size_t line = 0; line < WINDOW_HEIGHT; line++)
     {
         float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
         float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy) * scale;
-
-        size_t array_offset = line * WINDOW_WIDTH;
         
-        for (size_t col = 0; col < WINDOW_WIDTH; col += 4, x_0 += 4*dx*scale)
+        for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)
         {
-            float x_n[4] = {x_0, x_0 + dx, x_0 + (2*dx), x_0 + (3*dx)};
-            float y_n[4] = {y_0, y_0, y_0, y_0};
-            size_t count = 0;
+            float X0[8] = {x_0, x_0 + real_dx, x_0 + 2*real_dx, x_0 + 3*real_dx, x_0 + 4*real_dx, x_0 + 5*real_dx, x_0 + 6*real_dx, x_0 + 7*real_dx};
 
-            size_t final_counts[4] = {};
-
-            int if_count = 4;
+            float X_N[8] = {}; for (size_t i = 0; i < 8; i++) X_N[i] = X0[i];
+            float Y_N[8] = {}; for (size_t i = 0; i < 8; i++) Y_N[i] = y_0;
+            int count = 0;
+            int real_count[8] = {};
 
             while (count < MAX_ITERATIONS)
             {
                 count++;
-                float X2[4]  = {}; for (size_t i = 0; i < 4; i++) X2[i] = x_n[i] * x_n[i];
-                float Y2[4]  = {}; for (size_t i = 0; i < 4; i++) Y2[i] = y_n[i] * y_n[i];
-                float XY[4]  = {}; for (size_t i = 0; i < 4; i++) XY[i] = x_n[i] * y_n[i];
+                float X2[8] = {}; for (size_t i = 0; i < 8; i++) X2[i] = X_N[i] * X_N[i];
+                float Y2[8] = {}; for (size_t i = 0; i < 8; i++) Y2[i] = Y_N[i] * Y_N[i];
+                float XY[8] = {}; for (size_t i = 0; i < 8; i++) XY[i] = X_N[i] * Y_N[i];
 
-                float len[4] = {}; for (size_t i = 0; i < 4; i++) len[i] = X2[i] * Y2[i];
+                float R2[8] = {}; for (size_t i = 0; i < 8; i++) R2[i] = X2[i] + Y2[i];
 
-                for (size_t i = 0; i < 4; i++) 
-                    if (len[i] > RADIUS2) 
-                    {
-                        if (!final_counts[i]) 
-                        {
-                            final_counts[i] = count;
-                            if_count--;
-                        }
-                    }
+                int cmp[8] = {};
+                for (size_t i = 0; i < 8; i++) if (R2[i] <= RADIUS2) cmp[i] = 1;
 
-                if (!if_count) break;
+                int mask = 0;
+                for (size_t i = 0; i < 8; i++) mask |= (cmp[i] << i);
+                if (!mask) break;
 
-                for (size_t i = 0; i < 4; i++) x_n[i] = X2[i] - Y2[i] + x_0 + dx*((float) i);
-                for (size_t i = 0; i < 4; i++) y_n[i] = 2*XY[i] + y_0;
+                for (size_t i = 0; i < 8; i++) real_count[i] += cmp[i];
+
+                for (size_t i = 0; i < 8; i++) X_N[i] = X2[i] - Y2[i] + X0[i];
+                for (size_t i = 0; i < 8; i++) Y_N[i] = XY[i] + XY[i] + y_0;
             }
-            for (size_t i = 0; i < 4; i++)
-            {
-                array[array_offset + col + i] = (sf::Uint32) (0xffffffff - 180*final_counts[i]);
-            }
+            for (size_t i = 0; i < 8; i++) array[line*WINDOW_WIDTH + col + i] = (sf::Uint32) (0xffffffff - 180 * real_count[i]);
         } 
     }
 }
