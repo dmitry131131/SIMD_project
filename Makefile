@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -O3
+CXXFLAGS = -O3 -march=core-avx2
 TARGET = simd
 SourcePrefix = src/
 BuildPrefix = build/

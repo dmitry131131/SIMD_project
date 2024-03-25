@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <immintrin.h>
 #include <SFML/Graphics.hpp>
 
 #include "simd.h"
@@ -78,6 +79,55 @@ void generate_image_by_line(sf::Uint32* array)
 
                 for (size_t i = 0; i < 8; i++) X_N[i] = X2[i] - Y2[i] + X0[i];
                 for (size_t i = 0; i < 8; i++) Y_N[i] = XY[i] + XY[i] + y_0;
+            }
+            for (size_t i = 0; i < 8; i++) array[line*WINDOW_WIDTH + col + i] = (sf::Uint32) (0xffffffff - 180 * real_count[i]);
+        } 
+    }
+}
+
+void generate_image_by_simd(sf::Uint32* array)
+{
+   assert(array);
+
+    float real_dx = dx*scale;
+    __m256 MaxRadius = _mm256_set_ps(RADIUS2, RADIUS2, RADIUS2, RADIUS2, RADIUS2, RADIUS2, RADIUS2, RADIUS2);
+
+    for (size_t line = 0; line < WINDOW_HEIGHT; line++)
+    {
+        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
+        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy) * scale;
+        
+        for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)
+        {
+            __m256 X0 = _mm256_set_ps(x_0, x_0 + real_dx, x_0 + 2*real_dx, x_0 + 3*real_dx, x_0 + 4*real_dx, x_0 + 5*real_dx, x_0 + 6*real_dx, x_0 + 7*real_dx);
+            __m256 Y0 = _mm256_set_ps(y_0, y_0, y_0, y_0, y_0, y_0, y_0, y_0);
+
+            __m256 X_N = X0;
+            __m256 Y_N = Y0;
+            int count = 0;
+            int real_count[8] = {};
+
+            while (count < MAX_ITERATIONS)
+            {
+                count++;
+                __m256 X2 = _mm256_mul_ps(X_N, X_N);
+                __m256 Y2 = _mm256_mul_ps(Y_N, Y_N);
+                __m256 XY = _mm256_mul_ps(X_N, Y_N);
+
+                __m256 R2 = _mm256_add_ps(X2, Y2);
+
+                __m256 res = _mm256_cmp_ps(R2, MaxRadius, _CMP_LE_OS);
+
+                int mask = _mm256_movemask_ps(res);
+                if (!mask) break;
+
+                for (size_t i = 0; i < 8; i++) real_count[7-i] += ((mask >> i) & 1);
+
+                X_N = _mm256_sub_ps(X2, Y2);
+                X_N = _mm256_add_ps(X_N, X0);
+
+                Y_N = _mm256_add_ps(XY, XY);
+                Y_N = _mm256_add_ps(Y_N, Y0);
             }
             for (size_t i = 0; i < 8; i++) array[line*WINDOW_WIDTH + col + i] = (sf::Uint32) (0xffffffff - 180 * real_count[i]);
         } 

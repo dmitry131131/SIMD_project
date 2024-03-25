@@ -10,10 +10,10 @@ int main()
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot", sf::Style::Titlebar);
 
     sf::Uint32* frame = (sf::Uint32*) calloc(WINDOW_HEIGHT * WINDOW_WIDTH, sizeof(sf::Uint32));
-
+    /*
     clock_t start_time = clock();
 
-    for (size_t i = 0; i < 5; i++)
+    for (size_t i = 0; i < 20; i++)
     {
         generate_image_by_pixel(frame);
     }
@@ -24,7 +24,7 @@ int main()
 
     start_time = clock();
 
-    for (size_t i = 0; i < 5; i++)
+    for (size_t i = 0; i < 20; i++)
     {
         generate_image_by_line(frame);
     }
@@ -32,6 +32,17 @@ int main()
     end_time = clock();
 
     printf("line time:  %ld\n", end_time - start_time);
+    */
+    clock_t start_time = clock();
+
+    for (size_t i = 0; i < 20; i++)
+    {
+        generate_image_by_simd(frame);
+    }
+
+    clock_t end_time = clock();
+
+    printf("simd time:  %ld\n", end_time - start_time);
 
     sf::Texture tx;
     tx.create(WINDOW_WIDTH, WINDOW_HEIGHT);

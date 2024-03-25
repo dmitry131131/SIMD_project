@@ -15,4 +15,6 @@ void generate_image_by_pixel(sf::Uint32* array);
 
 void generate_image_by_line(sf::Uint32* array);
 
+void generate_image_by_simd(sf::Uint32* array);
+
 #endif
