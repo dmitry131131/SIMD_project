@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <immintrin.h>
+#include <string.h>
 #include <SFML/Graphics.hpp>
 
 #include "simd.h"
@@ -109,9 +110,9 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
 
             __m256 X_N = X0;
             __m256 Y_N = Y0;
-            int count = 0;
-            int real_count[8] = {};
 
+            int count = 0;
+            __m256i real_count = _mm256_setzero_si256();
             while (count < MAX_ITERATIONS)
             {
                 count++;
@@ -123,10 +124,12 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
 
                 __m256 res = _mm256_cmp_ps(R2, MaxRadius, _CMP_LE_OS);
 
-                int mask = _mm256_movemask_ps(res);
-                if (!mask) break;
+                __m256i temp = _mm256_castps_si256(res);
+                temp = _mm256_srli_epi32(temp, 31);
 
-                for (size_t i = 0; i < 8; i++) real_count[i] += ((mask >> i) & 1);
+                if (!_mm256_movemask_ps(res)) break;
+
+                real_count = _mm256_add_epi32(real_count, temp);
 
                 X_N = _mm256_sub_ps(X2, Y2);
                 X_N = _mm256_add_ps(X_N, X0);
@@ -134,7 +137,12 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
                 Y_N = _mm256_add_ps(XY, XY);
                 Y_N = _mm256_add_ps(Y_N, Y0);
             }
-            for (size_t i = 0; i < 8; i++) array[line*WINDOW_WIDTH + col + i] = (sf::Uint32) (0xffffffff - color_constant * real_count[i]);
+            __m256i out_array  = _mm256_set1_epi32(0xffffffff);
+            __m256i temp_color = _mm256_set1_epi32(color_constant);
+            temp_color         = _mm256_mullo_epi32(temp_color, real_count);
+            out_array          = _mm256_sub_epi32(out_array, temp_color);
+
+            memcpy(array + line*WINDOW_WIDTH + col, &out_array, 32);
         } 
     }
 }
