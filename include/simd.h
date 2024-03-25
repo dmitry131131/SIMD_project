@@ -9,6 +9,12 @@ const size_t WINDOW_HEIGHT  = 600;
 const float dx = 1 / (float) WINDOW_WIDTH;
 const float dy = 1 / (float) WINDOW_WIDTH;
 
+enum render_mode_t {
+    PIXEL = 0,
+    LINE  = 1,
+    SIMD  = 2
+};
+
 void generate_image_by_pixel(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant);
 
 void generate_image_by_line(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant);

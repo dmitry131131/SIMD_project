@@ -8,6 +8,6 @@ struct FPS_data {
     size_t frame_counter;
 };
 
-void calculate_FPS(FPS_data* FPS, sf::Text* text);
+void calculate_FPS(FPS_data* FPS, sf::Text* text, render_mode_t mode);
 
 #endif

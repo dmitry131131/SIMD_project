@@ -21,7 +21,7 @@ void generate_image_by_pixel(sf::Uint32* array, const float X_offset, const floa
             float y_n = y_0;
             size_t count = 0;
 
-            while (count < MAX_ITERATIONS)
+            while (count <= MAX_ITERATIONS)
             {
                 count++;
                 float X2 = x_n*x_n;
@@ -35,7 +35,7 @@ void generate_image_by_pixel(sf::Uint32* array, const float X_offset, const floa
                 x_n = X2 - Y2 + x_0;
                 y_n = XY + XY + y_0;
             }
-            array[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff - color_constant * count);   // Магическое число в определении цвета
+            array[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff - color_constant * (count - 1));   // Магическое число в определении цвета
         } 
     }
 }

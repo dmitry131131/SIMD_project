@@ -29,6 +29,8 @@ int main()
     text.setFillColor(sf::Color::Red);
     text.setStyle(sf::Text::Bold);
 
+    render_mode_t mode = SIMD;
+
     while (window.isOpen())
     {
         sf::Event event;
@@ -64,18 +66,46 @@ int main()
                 case sf::Keyboard::Equal:
                     scale -= 0.05;
                     break;
+
+                case sf::Keyboard::Num1:
+                    mode = PIXEL;
+                    break;
                 
+                case sf::Keyboard::Num2:
+                    mode = LINE;
+                    break;
+
+                case sf::Keyboard::Num3:
+                    mode = SIMD;
+                    break;
+
                 default:
                     break;
                 }
             }
         }
 
-        calculate_FPS(&FPS, &text);
+        calculate_FPS(&FPS, &text, mode);
 
         window.clear();
 
-        generate_image_by_simd(frame, X_offset, Y_offset, scale, 180);
+        switch (mode)
+        {
+        case PIXEL:
+            generate_image_by_pixel(frame, X_offset, Y_offset, scale, 180);
+            break;
+        
+        case LINE:
+            generate_image_by_line(frame, X_offset, Y_offset, scale, 180);
+            break;
+
+        case SIMD:
+            generate_image_by_simd(frame, X_offset, Y_offset, scale, 180);
+            break;
+
+        default:
+            break;
+        }
 
         sf::Texture tx;
         tx.create(WINDOW_WIDTH, WINDOW_HEIGHT);
