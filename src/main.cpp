@@ -7,57 +7,18 @@
 
 int main()
 {
-
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot", sf::Style::Titlebar);
 
     sf::Uint32* frame = (sf::Uint32*) calloc(WINDOW_HEIGHT * WINDOW_WIDTH, sizeof(sf::Uint32));
-
-    FPS_data FPS = {};
+    float scale = 2.9f, X_offset = -0.25f, Y_offset = 0;
 
     #ifdef COMPARE_MODE
-    clock_t start_time = clock();
-
-    for (size_t i = 0; i < 20; i++)
-    {
-        generate_image_by_pixel(frame);
-    }
-
-    clock_t end_time = clock();
-
-    printf("pixel time: %ld\n", end_time - start_time);
-
-    start_time = clock();
-
-    for (size_t i = 0; i < 20; i++)
-    {
-        generate_image_by_line(frame);
-    }
-
-    end_time = clock();
-
-    printf("line time:  %ld\n", end_time - start_time);
-
-    clock_t start_time = clock();
-
-    for (size_t i = 0; i < 20; i++)
-    {
-        generate_image_by_simd(frame);
-    }
-
-    clock_t end_time = clock();
-
-    printf("simd time:  %ld\n", end_time - start_time);
     
-    sf::Texture tx;
-    tx.create(WINDOW_WIDTH, WINDOW_HEIGHT);
-    tx.update((sf::Uint8*) frame, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
- 
-    sf::Sprite sprite(tx);
-    sprite.setPosition(0, 0);
+    compare_mode(frame, X_offset, Y_offset, scale, 180);
 
     #endif
 
-    char FPS_buffer[16] = {};
+    FPS_data FPS = {};
 
     sf::Text text;
     sf::Font font;
@@ -75,20 +36,46 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+            
+            if (event.type == sf::Event::KeyPressed)
+            {
+                switch (event.key.code)
+                {
+                case sf::Keyboard::Left:
+                    X_offset -= 0.05;
+                    break;
+
+                case sf::Keyboard::Right:
+                    X_offset += 0.05;
+                    break;
+
+                case sf::Keyboard::Up:
+                    Y_offset -= 0.05;
+                    break;
+
+                case sf::Keyboard::Down:
+                    Y_offset += 0.05;
+                    break;
+
+                case sf::Keyboard::Dash:
+                    scale += 0.05;
+                    break;
+
+                case sf::Keyboard::Equal:
+                    scale -= 0.05;
+                    break;
+                
+                default:
+                    break;
+                }
+            }
         }
 
-        clock_t current_time = clock() / CLOCKS_PER_SEC;
-        if ((current_time - FPS.last_time) > 0.5)
-        {
-            sprintf(FPS_buffer, "%lu", FPS.frame_counter);
-            text.setString(FPS_buffer);
-            FPS.last_time     = current_time;
-            FPS.frame_counter = 0;
-        }
+        calculate_FPS(&FPS, &text);
 
         window.clear();
 
-        generate_image_by_simd(frame);
+        generate_image_by_simd(frame, X_offset, Y_offset, scale, 180);
 
         sf::Texture tx;
         tx.create(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -106,6 +93,5 @@ int main()
     }
 
     free(frame);
-
     return 0;
 }

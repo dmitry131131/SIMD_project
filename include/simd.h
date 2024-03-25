@@ -9,12 +9,12 @@ const size_t WINDOW_HEIGHT  = 600;
 const float dx = 1 / (float) WINDOW_WIDTH;
 const float dy = 1 / (float) WINDOW_WIDTH;
 
-const float scale = 2.9f, X_offset = -0.25f;
+void generate_image_by_pixel(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant);
 
-void generate_image_by_pixel(sf::Uint32* array);
+void generate_image_by_line(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant);
 
-void generate_image_by_line(sf::Uint32* array);
+void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant);
 
-void generate_image_by_simd(sf::Uint32* array);
+void compare_mode(sf::Uint32* frame, const float X_offset, const float Y_offset, const float scale, const int color_constant);
 
 #endif

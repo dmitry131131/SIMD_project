@@ -20,6 +20,9 @@ objects = $(patsubst $(SourcePrefix)%.cpp, $(BuildPrefix)%.o, $(Source))
 
 all : prepare folder $(TARGET)
 
+test : CXXFLAGS = -O3 -march=core-avx2 -DCOMPARE_MODE
+test : all
+
 prepare: 
 	
 $(BuildPrefix)%.o : $(SourcePrefix)%.cpp
