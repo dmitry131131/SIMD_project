@@ -99,7 +99,12 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
         
         for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)
         {
-            __m256 X0 = _mm256_set_ps(x_0, x_0 + real_dx, x_0 + 2*real_dx, x_0 + 3*real_dx, x_0 + 4*real_dx, x_0 + 5*real_dx, x_0 + 6*real_dx, x_0 + 7*real_dx);
+            __m256 DX = _mm256_set1_ps(real_dx);
+            __m256 Mul_array = _mm256_set_ps(7, 6, 5, 4, 3, 2, 1, 0);
+            DX = _mm256_mul_ps(DX, Mul_array);
+            __m256 X0 = _mm256_set1_ps(x_0);
+            X0 = _mm256_add_ps(X0, DX);
+
             __m256 Y0 = _mm256_set1_ps(y_0);
 
             __m256 X_N = X0;
@@ -121,7 +126,7 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
                 int mask = _mm256_movemask_ps(res);
                 if (!mask) break;
 
-                for (size_t i = 0; i < 8; i++) real_count[7-i] += ((mask >> i) & 1);
+                for (size_t i = 0; i < 8; i++) real_count[i] += ((mask >> i) & 1);
 
                 X_N = _mm256_sub_ps(X2, Y2);
                 X_N = _mm256_add_ps(X_N, X0);
