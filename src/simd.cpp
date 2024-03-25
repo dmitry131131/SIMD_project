@@ -149,36 +149,36 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
 
 void compare_mode(sf::Uint32* frame, const float X_offset, const float Y_offset, const float scale, const int color_constant)
 {
-    clock_t start_time = clock();
+    size_t start_time = __rdtsc();
 
     for (size_t i = 0; i < 20; i++)
     {
         generate_image_by_pixel(frame, X_offset, Y_offset, scale, color_constant);
     }
 
-    clock_t end_time = clock();
+    size_t end_time = __rdtsc();
 
     printf("pixel time: %ld\n", end_time - start_time);
 
-    start_time = clock();
+    start_time = __rdtsc();
 
     for (size_t i = 0; i < 20; i++)
     {
         generate_image_by_line(frame, X_offset, Y_offset, scale, color_constant);
     }
 
-    end_time = clock();
+    end_time = __rdtsc();
 
     printf("line time:  %ld\n", end_time - start_time);
 
-    start_time = clock();
+    start_time = __rdtsc();
 
     for (size_t i = 0; i < 20; i++)
     {
         generate_image_by_simd(frame, X_offset, Y_offset, scale, color_constant);
     }
 
-    end_time = clock();
+    end_time = __rdtsc();
 
     printf("simd time:  %ld\n", end_time - start_time);
 }
