@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "simd.h"
+#include "FPS.h"
 
 int main()
 {
@@ -10,7 +11,10 @@ int main()
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot", sf::Style::Titlebar);
 
     sf::Uint32* frame = (sf::Uint32*) calloc(WINDOW_HEIGHT * WINDOW_WIDTH, sizeof(sf::Uint32));
-    /*
+
+    FPS_data FPS = {};
+
+    #ifdef COMPARE_MODE
     clock_t start_time = clock();
 
     for (size_t i = 0; i < 20; i++)
@@ -32,7 +36,7 @@ int main()
     end_time = clock();
 
     printf("line time:  %ld\n", end_time - start_time);
-    */
+
     clock_t start_time = clock();
 
     for (size_t i = 0; i < 20; i++)
@@ -43,13 +47,26 @@ int main()
     clock_t end_time = clock();
 
     printf("simd time:  %ld\n", end_time - start_time);
-
+    
     sf::Texture tx;
     tx.create(WINDOW_WIDTH, WINDOW_HEIGHT);
     tx.update((sf::Uint8*) frame, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
  
     sf::Sprite sprite(tx);
     sprite.setPosition(0, 0);
+
+    #endif
+
+    char FPS_buffer[16] = {};
+
+    sf::Text text;
+    sf::Font font;
+    font.loadFromFile("font/font.ttf");
+    text.setFont(font);
+    
+    text.setCharacterSize(22);
+    text.setFillColor(sf::Color::Red);
+    text.setStyle(sf::Text::Bold);
 
     while (window.isOpen())
     {
@@ -60,8 +77,31 @@ int main()
                 window.close();
         }
 
+        clock_t current_time = clock() / CLOCKS_PER_SEC;
+        if ((current_time - FPS.last_time) > 0.5)
+        {
+            sprintf(FPS_buffer, "%lu", FPS.frame_counter);
+            text.setString(FPS_buffer);
+            FPS.last_time     = current_time;
+            FPS.frame_counter = 0;
+        }
+
         window.clear();
+
+        generate_image_by_simd(frame);
+
+        sf::Texture tx;
+        tx.create(WINDOW_WIDTH, WINDOW_HEIGHT);
+        tx.update((sf::Uint8*) frame, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
+    
+        sf::Sprite sprite(tx);
+        sprite.setPosition(0, 0);
+
         window.draw(sprite);
+        window.draw(text);
+
+        (FPS.frame_counter++);
+
         window.display();
     }
 

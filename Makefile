@@ -6,7 +6,7 @@ BuildPrefix = build/
 BuildFolder = build
 Include = -Iinclude
 
-Sources = simd.cpp
+Sources = simd.cpp FPS.cpp
 Main = main.cpp
 
 Libs = -lsfml-graphics -lsfml-window -lsfml-system
