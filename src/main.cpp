@@ -8,11 +8,27 @@
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot", sf::Style::Titlebar);
+    sf::Font font;
+    font.loadFromFile("font/font.ttf");
 
     sf::Uint32* frame = (sf::Uint32*) calloc(WINDOW_HEIGHT * WINDOW_WIDTH, sizeof(sf::Uint32));
     float scale = 2.9f, X_offset = -0.25f, Y_offset = 0;
 
     #ifdef COMPARE_MODE
+
+    sf::Text test_text;
+    test_text.setFont(font);
+
+    test_text.setCharacterSize(50);
+    test_text.setFillColor(sf::Color::Green);
+    test_text.setStyle(sf::Text::Bold);
+
+    test_text.setString("Testing...");
+    test_text.setPosition(WINDOW_WIDTH/2 - 150, WINDOW_HEIGHT/2 - 50);
+
+    window.clear();
+    window.draw(test_text);
+    window.display();
     
     compare_mode(frame, X_offset, Y_offset, scale, 180);
 
@@ -21,8 +37,6 @@ int main()
     FPS_data FPS = {};
 
     sf::Text text;
-    sf::Font font;
-    font.loadFromFile("font/font.ttf");
     text.setFont(font);
     
     text.setCharacterSize(22);

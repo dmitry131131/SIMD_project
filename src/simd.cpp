@@ -124,11 +124,10 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
 
                 __m256 res = _mm256_cmp_ps(R2, MaxRadius, _CMP_LE_OS);
 
-                __m256i temp = _mm256_castps_si256(res);
-                temp = _mm256_srli_epi32(temp, 31);
-
                 if (!_mm256_movemask_ps(res)) break;
 
+                __m256i temp = _mm256_castps_si256(res);
+                temp = _mm256_srli_epi32(temp, 31);
                 real_count = _mm256_add_epi32(real_count, temp);
 
                 X_N = _mm256_sub_ps(X2, Y2);
