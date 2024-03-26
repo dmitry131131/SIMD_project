@@ -87,32 +87,35 @@ make test
 Приведём пример простейшей реализации только для того, чтобы объяснить суть дальнейших оптимизаций.
 
 ```c
-    for (size_t line = 0; line < WINDOW_HEIGHT; line++)                             // Цикл обхода рендеринга по строчкам
+    for (size_t line = 0; line < WINDOW_HEIGHT; line++) // Цикл обхода рендеринга по строчкам
     {
-        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;          // Вычисление положения самого левого пикселя в строчке
+        // Вычисление положения самого левого пикселя в строчке
+        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;          
         float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy) * scale;
         
-        for (size_t col = 0; col < WINDOW_WIDTH; col++, x_0 += dx*scale)            // Цикл обработки каждого пикселя в строчке
+        // Цикл обработки каждого пикселя в строчке
+        for (size_t col = 0; col < WINDOW_WIDTH; col++, x_0 += dx*scale)            
         {
-            float x_n = x_0;                                                        // Инициализация начальных координат для текущего пикселя
+            float x_n = x_0; // Инициализация начальных координат для текущего пикселя
             float y_n = y_0;
             size_t count = 0;
 
-            while (count <= MAX_ITERATIONS)                                         // Цикл обработки текущего пикселя
+            while (count <= MAX_ITERATIONS) // Цикл обработки текущего пикселя
             {
                 count++;
-                float X2 = x_n*x_n;                                                 // x^2
-                float Y2 = y_n*y_n;                                                 // y^2
-                float XY = x_n*y_n;                                                 // x*y
+                float X2 = x_n*x_n;   // x^2
+                float Y2 = y_n*y_n;   // y^2
+                float XY = x_n*y_n;   // x*y
 
-                float len = X2 + Y2;                                                // Вычисление расстояния от центра
+                float len = X2 + Y2;  // Вычисление расстояния от центра
 
-                if (len >= RADIUS2) break;                                          // Сравнение с максимально допустимым расстоянием
+                if (len >= RADIUS2) break; // Сравнение с максимально допустимым расстоянием
 
-                x_n = X2 - Y2 + x_0;                                                // Вычисление координат для следующей итерации цикла
+                x_n = X2 - Y2 + x_0;  // Вычисление координат для следующей итерации цикла
                 y_n = XY + XY + y_0;
             }
-            array[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff - color_constant * (count - 1));   // Вычисление цвета в зависимости от числа прохода цикла
+            // Вычисление цвета в зависимости от числа прохода цикла
+            array[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff - color_constant * (count - 1));   
         } 
     }
 ```
@@ -123,45 +126,52 @@ make test
 
 ```c
 
-float real_dx = dx*scale;                                                                   // Вычисление смещения по горизонтали с учётом текущего zoom-коэффициента 
+float real_dx = dx*scale; // Вычисление смещения по горизонтали с учётом текущего zoom-коэффициента 
 
-for (size_t line = 0; line < WINDOW_HEIGHT; line++)                                         // Цикл обхода рендеринга по строчкам
+for (size_t line = 0; line < WINDOW_HEIGHT; line++) // Цикл обхода рендеринга по строчкам
     {
-        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;                  // Вычисление положения самого левого пикселя в строчке
+        // Вычисление положения самого левого пикселя в строчке
+        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;                  
         float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy) * scale;
         
-        for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)                // Цикл обработки строчки по 8 пикселей за раз
+        // Цикл обработки строчки по 8 пикселей за раз
+        for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)                
         {
             // Инициализация массива начальных положений пикселей
             float X0[8] = {x_0, x_0 + real_dx, x_0 + 2*real_dx, x_0 + 3*real_dx, x_0 + 4*real_dx, x_0 + 5*real_dx, x_0 + 6*real_dx, x_0 + 7*real_dx};
 
-            float X_N[8] = {}; for (size_t i = 0; i < 8; i++) X_N[i] = X0[i];               // Инициализация начальных значений для текущих пикселей
+            // Инициализация начальных значений для текущих пикселей
+            float X_N[8] = {}; for (size_t i = 0; i < 8; i++) X_N[i] = X0[i];               
             float Y_N[8] = {}; for (size_t i = 0; i < 8; i++) Y_N[i] = y_0;
             int count = 0;
             int real_count[8] = {};
 
-            while (count < MAX_ITERATIONS)                                                  // Цикл обработки 8 текущих пикселей
+            while (count < MAX_ITERATIONS) // Цикл обработки 8 текущих пикселей
             {
                 count++;
-                float X2[8] = {}; for (size_t i = 0; i < 8; i++) X2[i] = X_N[i] * X_N[i];   // x^2
-                float Y2[8] = {}; for (size_t i = 0; i < 8; i++) Y2[i] = Y_N[i] * Y_N[i];   // y^2
-                float XY[8] = {}; for (size_t i = 0; i < 8; i++) XY[i] = X_N[i] * Y_N[i];   // x*y
+                float X2[8] = {}; for (size_t i = 0; i < 8; i++) X2[i] = X_N[i] * X_N[i];// x^2
+                float Y2[8] = {}; for (size_t i = 0; i < 8; i++) Y2[i] = Y_N[i] * Y_N[i];// y^2
+                float XY[8] = {}; for (size_t i = 0; i < 8; i++) XY[i] = X_N[i] * Y_N[i];// x*y
 
-                float R2[8] = {}; for (size_t i = 0; i < 8; i++) R2[i] = X2[i] + Y2[i];     // Вычисление расстояния пикселя от начала координат
+                // Вычисление расстояния пикселя от начала координат
+                float R2[8] = {}; for (size_t i = 0; i < 8; i++) R2[i] = X2[i] + Y2[i];     
 
-                int cmp[8] = {};
-                for (size_t i = 0; i < 8; i++) if (R2[i] <= RADIUS2) cmp[i] = 1;            // Сравнение с максимально допустимым расстоянием
+                int cmp[8] = {}; // Сравнение с максимально допустимым расстоянием
+                for (size_t i = 0; i < 8; i++) if (R2[i] <= RADIUS2) cmp[i] = 1;            
 
-                int mask = 0;
-                for (size_t i = 0; i < 8; i++) mask |= (cmp[i] << i);                       // Проверка на досрочное завершение цикла
+                int mask = 0;  // Проверка на досрочное завершение цикла
+                for (size_t i = 0; i < 8; i++) mask |= (cmp[i] << i); 
                 if (!mask) break;
 
-                for (size_t i = 0; i < 8; i++) real_count[i] += cmp[i];                     // Вычисление количества проходов для каждого пикселя(для определения цвета)
+                // Вычисление количества проходов для каждого пикселя(для определения цвета)
+                for (size_t i = 0; i < 8; i++) real_count[i] += cmp[i];                     
 
-                for (size_t i = 0; i < 8; i++) X_N[i] = X2[i] - Y2[i] + X0[i];              // Вычисление координат для следующей итерации
+                // Вычисление координат для следующей итерации
+                for (size_t i = 0; i < 8; i++) X_N[i] = X2[i] - Y2[i] + X0[i];              
                 for (size_t i = 0; i < 8; i++) Y_N[i] = XY[i] + XY[i] + y_0;
             }
-            for (size_t i = 0; i < 8; i++) array[line*WINDOW_WIDTH + col + i] = (sf::Uint32) (0xffffffff - color_constant * real_count[i]); // Вычисление цвета каждого пикселя
+            // Вычисление цвета каждого пикселя
+            for (size_t i = 0; i < 8; i++) array[line*WINDOW_WIDTH + col + i] = (sf::Uint32) (0xffffffff - color_constant * real_count[i]); 
         } 
     }
 
@@ -172,17 +182,19 @@ for (size_t line = 0; line < WINDOW_HEIGHT; line++)                             
 ### SIMD оптимизации
 
 ```c
-    float real_dx = dx*scale;                                                                   // Вычисление смещения по горизонтали с учётом текущего zoom-коэффициента
-    __m256 MaxRadius = _mm256_set1_ps(RADIUS2);                                                 // заполнение вектора значениями максимально расстояния от начала координат
+    float real_dx = dx*scale;  // Вычисление смещения по горизонтали с учётом текущего zoom-коэффициента
+    __m256 MaxRadius = _mm256_set1_ps(RADIUS2);  // заполнение вектора значениями максимально расстояния от начала координат
 
-    for (size_t line = 0; line < WINDOW_HEIGHT; line++)                                         // Цикл обхода рендеринга по строчкам
+    for (size_t line = 0; line < WINDOW_HEIGHT; line++) // Цикл обхода рендеринга по строчкам
     {
-        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;                      // Вычисление положения самого левого пикселя в строчке
+        // Вычисление положения самого левого пикселя в строчке
+        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;                      
         float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + Y_offset) * scale;
         
-        for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)                    // Цикл обработки строчки по 8 пикселей за раз
+        // Цикл обработки строчки по 8 пикселей за раз
+        for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)                    
         {
-            __m256 DX = _mm256_set1_ps(real_dx);                                                // Инициализация начальных значений для текущих пикселей
+            __m256 DX = _mm256_set1_ps(real_dx); // Инициализация начальных значений для текущих пикселей
             __m256 Mul_array = _mm256_set_ps(7, 6, 5, 4, 3, 2, 1, 0);
             DX = _mm256_mul_ps(DX, Mul_array);
             __m256 X0 = _mm256_set1_ps(x_0);
@@ -190,39 +202,46 @@ for (size_t line = 0; line < WINDOW_HEIGHT; line++)                             
 
             __m256 Y0 = _mm256_set1_ps(y_0);
 
-            __m256 X_N = X0;                                                                    // Инициализация начальных значений для текущих пикселей
+            __m256 X_N = X0;  // Инициализация начальных значений для текущих пикселей
             __m256 Y_N = Y0;
 
             int count = 0;
             __m256i real_count = _mm256_setzero_si256();
-            while (count < MAX_ITERATIONS)                                                      // Цикл обработки 8 текущих пикселей
+            while (count < MAX_ITERATIONS) // Цикл обработки 8 текущих пикселей
             {
                 count++;
-                __m256 X2 = _mm256_mul_ps(X_N, X_N);                                            // x^2
-                __m256 Y2 = _mm256_mul_ps(Y_N, Y_N);                                            // y^2
-                __m256 XY = _mm256_mul_ps(X_N, Y_N);                                            // x*y
+                __m256 X2 = _mm256_mul_ps(X_N, X_N);  // x^2
+                __m256 Y2 = _mm256_mul_ps(Y_N, Y_N);  // y^2
+                __m256 XY = _mm256_mul_ps(X_N, Y_N);  // x*y
 
-                __m256 R2 = _mm256_add_ps(X2, Y2);                                              // Вычисление расстояния пикселя от начала координат
+                // Вычисление расстояния пикселя от начала координат
+                __m256 R2 = _mm256_add_ps(X2, Y2);                                              
 
-                __m256 res = _mm256_cmp_ps(R2, MaxRadius, _CMP_LE_OS);                          // Сравнение с максимально допустимым расстоянием
+                // Сравнение с максимально допустимым расстоянием
+                __m256 res = _mm256_cmp_ps(R2, MaxRadius, _CMP_LE_OS);                          
 
-                if (!_mm256_movemask_ps(res)) break;                                            // Проверка на досрочное завершение цикла
+                // Проверка на досрочное завершение цикла
+                if (!_mm256_movemask_ps(res)) break;                                            
 
-                __m256i temp = _mm256_castps_si256(res);                                        // Вычисление количества проходов для каждого пикселя(для определения цвета)
+                // Вычисление количества проходов для каждого пикселя(для определения цвета)
+                __m256i temp = _mm256_castps_si256(res);                                        
                 temp = _mm256_srli_epi32(temp, 31);
-                real_count = _mm256_add_epi32(real_count, temp);
+                real_count = _mm256_add_epi32(real_count, temp0);
 
-                X_N = _mm256_sub_ps(X2, Y2);                                                    // Вычисление координат для следующей итерации
+                // Вычисление координат для следующей итерации
+                X_N = _mm256_sub_ps(X2, Y2);                                                    
                 X_N = _mm256_add_ps(X_N, X0);
 
                 Y_N = _mm256_add_ps(XY, XY);
                 Y_N = _mm256_add_ps(Y_N, Y0);
             }
-            __m256i out_array  = _mm256_set1_epi32(0xffffffff);                                 // Определение цвета пикселей
+            // Определение цвета пикселей
+            __m256i out_array  = _mm256_set1_epi32(0xffffffff);                                 
             __m256i temp_color = _mm256_set1_epi32(color_constant);
             temp_color         = _mm256_mullo_epi32(temp_color, real_count);
             out_array          = _mm256_sub_epi32(out_array, temp_color);
 
+            // Копирование пикселей в итоговый буфер
             memcpy(array + line*WINDOW_WIDTH + col, &out_array, 32);
         } 
     }
