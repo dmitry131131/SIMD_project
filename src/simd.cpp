@@ -1,24 +1,25 @@
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 #include <immintrin.h>
 #include <string.h>
 #include <SFML/Graphics.hpp>
 
 #include "simd.h"
 
-void generate_image_by_pixel(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant)
+void generate_image_by_pixel(render_context* context)
 {
-    assert(array);
+    assert(context);
 
     for (size_t line = 0; line < WINDOW_HEIGHT; line++)
     {
-        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
-        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + Y_offset) * scale;
+        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + context->X_offset) * context->scale;
+        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + context->Y_offset) * context->scale;
         
-        for (size_t col = 0; col < WINDOW_WIDTH; col++, x_0 += dx*scale)
+        for (size_t col = 0; col < WINDOW_WIDTH; col++, x_0 += dx*context->scale)
         {
-            float x_n = x_0;
-            float y_n = y_0;
+            float x_n    = x_0;
+            float y_n    = y_0;
             size_t count = 0;
 
             while (count <= MAX_ITERATIONS)
@@ -35,29 +36,29 @@ void generate_image_by_pixel(sf::Uint32* array, const float X_offset, const floa
                 x_n = X2 - Y2 + x_0;
                 y_n = XY + XY + y_0;
             }
-            array[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff - color_constant * (count - 1));   // Магическое число в определении цвета
+            (context->frame)[line*WINDOW_WIDTH + col] = (sf::Uint32) (0xffffffff - color_constant * (count - 1));   // Магическое число в определении цвета
         } 
     }
 }
 
-void generate_image_by_line(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant)
+void generate_image_by_line(render_context* context)
 {
-    assert(array);
+    assert(context);
 
-    float real_dx = dx*scale;
+    float real_dx = dx*context->scale;
 
     for (size_t line = 0; line < WINDOW_HEIGHT; line++)
     {
-        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
-        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + Y_offset) * scale;
+        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + context->X_offset) * context->scale;
+        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + context->Y_offset) * context->scale;
         
         for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)
         {
             float X0[8] = {x_0, x_0 + real_dx, x_0 + 2*real_dx, x_0 + 3*real_dx, x_0 + 4*real_dx, x_0 + 5*real_dx, x_0 + 6*real_dx, x_0 + 7*real_dx};
 
-            float X_N[8] = {}; for (size_t i = 0; i < 8; i++) X_N[i] = X0[i];
-            float Y_N[8] = {}; for (size_t i = 0; i < 8; i++) Y_N[i] = y_0;
-            int count = 0;
+            float X_N[8]      = {}; for (size_t i = 0; i < 8; i++) X_N[i] = X0[i];
+            float Y_N[8]      = {}; for (size_t i = 0; i < 8; i++) Y_N[i] = y_0;
+            int count         = 0;
             int real_count[8] = {};
 
             while (count < MAX_ITERATIONS)
@@ -69,7 +70,7 @@ void generate_image_by_line(sf::Uint32* array, const float X_offset, const float
 
                 float R2[8] = {}; for (size_t i = 0; i < 8; i++) R2[i] = X2[i] + Y2[i];
 
-                int cmp[8] = {};
+                int cmp[8]  = {};
                 for (size_t i = 0; i < 8; i++) if (R2[i] <= RADIUS2) cmp[i] = 1;
 
                 int mask = 0;
@@ -81,22 +82,22 @@ void generate_image_by_line(sf::Uint32* array, const float X_offset, const float
                 for (size_t i = 0; i < 8; i++) X_N[i] = X2[i] - Y2[i] + X0[i];
                 for (size_t i = 0; i < 8; i++) Y_N[i] = XY[i] + XY[i] + y_0;
             }
-            for (size_t i = 0; i < 8; i++) array[line*WINDOW_WIDTH + col + i] = (sf::Uint32) (0xffffffff - color_constant * real_count[i]);
+            for (size_t i = 0; i < 8; i++) (context->frame)[line*WINDOW_WIDTH + col + i] = (sf::Uint32) (0xffffffff - color_constant * real_count[i]);
         } 
     }
 }
 
-void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant)
+void generate_image_by_simd(render_context* context)
 {
-   assert(array);
+   assert(context);
 
-    float real_dx = dx*scale;
+    float real_dx    = dx*context->scale;
     __m256 MaxRadius = _mm256_set1_ps(RADIUS2);
 
     for (size_t line = 0; line < WINDOW_HEIGHT; line++)
     {
-        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
-        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + Y_offset) * scale;
+        float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + context->X_offset) * context->scale;
+        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + context->Y_offset) * context->scale;
         
         for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)
         {
@@ -106,7 +107,7 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
             __m256 X0 = _mm256_set1_ps(x_0);
             X0 = _mm256_add_ps(X0, DX);
 
-            __m256 Y0 = _mm256_set1_ps(y_0);
+            __m256 Y0  = _mm256_set1_ps(y_0);
 
             __m256 X_N = X0;
             __m256 Y_N = Y0;
@@ -141,18 +142,18 @@ void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float
             temp_color         = _mm256_mullo_epi32(temp_color, real_count);
             out_array          = _mm256_sub_epi32(out_array, temp_color);
 
-            memcpy(array + line*WINDOW_WIDTH + col, &out_array, 32);
+            memcpy(context->frame + line*WINDOW_WIDTH + col, &out_array, 32);
         } 
     }
 }
 
-void compare_mode(sf::Uint32* frame, const float X_offset, const float Y_offset, const float scale, const int color_constant)
+void compare_mode(render_context* context)
 {
     size_t start_time = __rdtsc();
 
     for (size_t i = 0; i < 20; i++)
     {
-        generate_image_by_pixel(frame, X_offset, Y_offset, scale, color_constant);
+        generate_image_by_pixel(context);
     }
 
     size_t end_time = __rdtsc();
@@ -163,7 +164,7 @@ void compare_mode(sf::Uint32* frame, const float X_offset, const float Y_offset,
 
     for (size_t i = 0; i < 20; i++)
     {
-        generate_image_by_line(frame, X_offset, Y_offset, scale, color_constant);
+        generate_image_by_line(context);
     }
 
     end_time = __rdtsc();
@@ -174,10 +175,35 @@ void compare_mode(sf::Uint32* frame, const float X_offset, const float Y_offset,
 
     for (size_t i = 0; i < 20; i++)
     {
-        generate_image_by_simd(frame, X_offset, Y_offset, scale, color_constant);
+        generate_image_by_simd(context);
     }
 
     end_time = __rdtsc();
 
     printf("simd time:  %ld\n", end_time - start_time);
+}
+
+void context_ctor(render_context* context)
+{
+    assert(context);
+
+    context->frame    = (sf::Uint32*) calloc(WINDOW_HEIGHT * WINDOW_WIDTH, sizeof(sf::Uint32));
+    context->X_offset = -0.25f;
+    context->Y_offset = 0;
+    context->scale    = 2.9f;
+
+    (context->font).loadFromFile("font/font.ttf");
+    (context->text).setFont(context->font);
+    (context->text).setCharacterSize(22);
+    (context->text).setFillColor(sf::Color::Red);
+    (context->text).setStyle(sf::Text::Regular);
+    
+    context->mode = SIMD;
+}
+
+void context_dtor(render_context* context)
+{
+    assert(context);
+
+    free(context->frame);
 }

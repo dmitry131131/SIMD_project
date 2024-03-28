@@ -16,12 +16,22 @@ enum render_mode_t {
     SIMD  = 2
 };
 
-void generate_image_by_pixel(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant);
+struct render_context {
+    sf::Font font;
+    sf::Text text;
+    sf::Uint32* frame;
+    render_mode_t mode;
+    float scale; 
+    float X_offset; 
+    float Y_offset;
+};
 
-void generate_image_by_line(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant);
+void generate_image_by_pixel(render_context* context);
+void generate_image_by_line( render_context* context);
+void generate_image_by_simd( render_context* context);
+void compare_mode(           render_context* context);
 
-void generate_image_by_simd(sf::Uint32* array, const float X_offset, const float Y_offset, const float scale, const int color_constant);
-
-void compare_mode(sf::Uint32* frame, const float X_offset, const float Y_offset, const float scale, const int color_constant);
+void context_ctor(render_context* context);
+void context_dtor(render_context* context);
 
 #endif
