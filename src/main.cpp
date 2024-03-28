@@ -41,7 +41,7 @@ int main()
     
     text.setCharacterSize(22);
     text.setFillColor(sf::Color::Red);
-    text.setStyle(sf::Text::Bold);
+    text.setStyle(sf::Text::Regular);
 
     render_mode_t mode = SIMD;
 
@@ -106,15 +106,15 @@ int main()
         switch (mode)
         {
         case PIXEL:
-            generate_image_by_pixel(frame, X_offset, Y_offset, scale, 180);
+            generate_image_by_pixel(frame, X_offset, Y_offset, scale, color_constant);
             break;
         
         case LINE:
-            generate_image_by_line(frame, X_offset, Y_offset, scale, 180);
+            generate_image_by_line(frame, X_offset, Y_offset, scale, color_constant);
             break;
 
         case SIMD:
-            generate_image_by_simd(frame, X_offset, Y_offset, scale, 180);
+            generate_image_by_simd(frame, X_offset, Y_offset, scale, color_constant);
             break;
 
         default:

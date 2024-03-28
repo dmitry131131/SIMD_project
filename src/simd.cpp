@@ -13,7 +13,7 @@ void generate_image_by_pixel(sf::Uint32* array, const float X_offset, const floa
     for (size_t line = 0; line < WINDOW_HEIGHT; line++)
     {
         float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
-        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy) * scale;
+        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + Y_offset) * scale;
         
         for (size_t col = 0; col < WINDOW_WIDTH; col++, x_0 += dx*scale)
         {
@@ -49,7 +49,7 @@ void generate_image_by_line(sf::Uint32* array, const float X_offset, const float
     for (size_t line = 0; line < WINDOW_HEIGHT; line++)
     {
         float x_0 = (-((float) WINDOW_WIDTH / 2) * dx + X_offset) * scale;
-        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy) * scale;
+        float y_0 = (((float) line - ((float) WINDOW_HEIGHT / 2)) * dy + Y_offset) * scale;
         
         for (size_t col = 0; col < WINDOW_WIDTH; col += 8, x_0 += 8*real_dx)
         {
