@@ -1,12 +1,15 @@
 CXX = g++
-CXXFLAGS = -O3 -march=core-avx2
+CXXFLAGS =  -O3 -march=core-avx2
+
+#-O3 -march=core-avx2
+
 TARGET = simd
 SourcePrefix = src/
 BuildPrefix = build/
 BuildFolder = build
 Include = -Iinclude
 
-Sources = simd.cpp FPS.cpp
+Sources = simd.cpp FPS.cpp image.cpp
 Main = main.cpp
 
 Libs = -lsfml-graphics -lsfml-window -lsfml-system
@@ -22,6 +25,9 @@ all : prepare folder $(TARGET)
 
 test : CXXFLAGS = -O3 -march=core-avx2 -DCOMPARE_MODE
 test : all
+
+cat : CXXFLAGS = -O3 -march=core-avx2 -DCAT
+cat : all
 
 prepare: 
 	

@@ -198,7 +198,7 @@ void context_ctor(render_context* context)
     (context->text).setFillColor(sf::Color::Red);
     (context->text).setStyle(sf::Text::Regular);
     
-    context->mode = SIMD;
+    context->mode = PIXEL;
 }
 
 void context_dtor(render_context* context)
