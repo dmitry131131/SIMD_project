@@ -1,6 +1,8 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+//#define MULTIPLY_MODE
+
 struct ImageData {
     sf::Uint8*   name;
     sf::Vector2u size;
@@ -20,6 +22,10 @@ sf::Texture get_texture(ImageData* image);
 void make_composing_pixel(const ImageData* first, const ImageData* second, ImageData* out);
 void make_composing_line(const ImageData* first,const ImageData* second, ImageData* out);
 void make_composing_simd(const ImageData* first, const ImageData* second, ImageData* out);
+
+void make_alpha_composing_pixel(const ImageData* first, const ImageData* second, ImageData* out);
+void make_alpha_composing_line(const ImageData* first,const ImageData* second, ImageData* out);
+void make_alpha_composing_simd(const ImageData* first, const ImageData* second, ImageData* out);
 
 void cat_compare_mode(ImageData* first, ImageData* second, ImageData* out);
 

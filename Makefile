@@ -23,11 +23,14 @@ objects = $(patsubst $(SourcePrefix)%.cpp, $(BuildPrefix)%.o, $(Source))
 
 all : prepare folder $(TARGET)
 
-test : CXXFLAGS = -O3 -march=core-avx2 -DCOMPARE_MODE
-test : all
+mandelbrot : CXXFLAGS = -O3 -march=core-avx2
+mandelbrot : all
 
-cat : CXXFLAGS = -O3 -march=core-avx2 -DCAT
-cat : all
+alpha_cat : CXXFLAGS = -O3 -march=core-avx2 -DCAT
+alpha_cat : all
+
+multiply_cat : CXXFLAGS = -O3 -march=core-avx2 -DCAT -DMULTIPLY_MODE
+multiply_cat : all
 
 prepare: 
 	

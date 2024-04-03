@@ -17,8 +17,6 @@ int main()
 
     context_ctor(&context);
 
-    #ifdef COMPARE_MODE
-
     sf::Text test_text;
     test_text.setFont(context.font);
 
@@ -34,20 +32,27 @@ int main()
     window.draw(test_text);
 
     window.display();
+
+    #ifndef CAT
     
     compare_mode(&context);
 
-    #endif
-
-    #ifdef CAT
-    ImageData cat   = open_image("img/cat2.jpg");
+    #else
+    
+    #ifndef MULTIPLY_MODE
+    ImageData cat   = open_image("img/AskhatCat.png");
+    ImageData table = open_image("img/Table.bmp");
+    #else
+    ImageData cat   = open_image("img/cat.jpg");
     ImageData table = open_image("img/wall.jpg");
+    #endif
 
     ImageData out_data = img_data_cpy(&table);
 
     cat_compare_mode(&table, &cat, &out_data);
 
     save_image(&out_data, "final.jpg");
+
     #endif
 
     FPS_data FPS = {};
@@ -144,6 +149,8 @@ int main()
 
         #else
 
+        #ifdef MULTIPLY_MODE
+
         switch (context.mode)
         {
         case PIXEL:
@@ -161,6 +168,28 @@ int main()
         default:
             break;
         }
+
+        #else
+
+        switch (context.mode)
+        {
+        case PIXEL:
+            make_alpha_composing_pixel(&table, &cat, &out_data);
+            break;
+
+        case LINE:
+            make_alpha_composing_line(&table, &cat, &out_data);
+            break;
+
+        case SIMD:
+            make_alpha_composing_simd(&table, &cat, &out_data);
+            break;
+
+        default:
+            break;
+        }
+
+        #endif
 
         sf::Texture table_texture = get_texture(&out_data);
         sf::Sprite  table_sprite(table_texture);
