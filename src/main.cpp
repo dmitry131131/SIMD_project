@@ -9,9 +9,19 @@
 #include "image.h"
 #include "FPS.h"
 
+#ifndef CAT
+const char* program_name = "Mandelbrot";
+#else
+#ifndef MULTIPLY_MODE
+const char* program_name = "Alpha cat";
+#else
+const char* program_name = "Multiply cat";
+#endif
+#endif
+
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Mandelbrot", sf::Style::Titlebar);
+    sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), program_name, sf::Style::Titlebar);
 
     render_context context = {};
 
@@ -38,13 +48,13 @@ int main()
     compare_mode(&context);
 
     #else
-    
+
     #ifndef MULTIPLY_MODE
-    ImageData cat   = open_image("img/AskhatCat.png");
-    ImageData table = open_image("img/Table.bmp");
+    ImageData cat   = open_image("img/source/AskhatCat.png");
+    ImageData table = open_image("img/source/Table.bmp");
     #else
-    ImageData cat   = open_image("img/cat.jpg");
-    ImageData table = open_image("img/wall.jpg");
+    ImageData cat   = open_image("img/source/cat.jpg");
+    ImageData table = open_image("img/source/wall.jpg");
     #endif
 
     ImageData out_data = img_data_cpy(&table);
